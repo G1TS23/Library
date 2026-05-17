@@ -1,0 +1,2 @@
+INSERT INTO books (id, title, author, year) VALUES (nextval('books_SEQ'),'Clean Code', 'Robert Martin', 2008);
+INSERT INTO books (id, title, author, year) VALUES (nextval('books_SEQ'),'The Pragmatic Programmer', 'David Thomas', 1999);
