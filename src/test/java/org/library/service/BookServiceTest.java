@@ -25,7 +25,7 @@ class BookServiceTest {
     @BeforeAll
     static void setUp() {
         mockRepo = mock(BookRepository.class);
-        service = new BookService(mockRepo);
+        service = new BookService(mockRepo, 5);
     }
 
     @Test
