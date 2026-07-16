@@ -10,13 +10,15 @@ import org.library.dto.openlibrary.OpenLibraryResponse;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class OpenLibraryServiceTest {
 
     private OpenLibraryService service;
     private OpenLibraryClient mockClient;
+    private static final List<String> MOCK_FIELDS = List.of("title", "author_name", "first_publish_year");
 
     @BeforeEach
     void setup(){
@@ -25,8 +27,18 @@ class OpenLibraryServiceTest {
     }
 
     @Test
+    void shouldRequestOnlyNeededFields(){
+        when(mockClient.searchByTitle(eq("Clean Code"), any()))
+                .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), 2008))));
+
+        service.searchByTitle("Clean Code");
+
+        verify(mockClient).searchByTitle("Clean Code", MOCK_FIELDS);
+    }
+
+    @Test
     void shouldReturnBooksFromOpenLibrary(){
-        when(mockClient.searchByTitle("Clean Code"))
+        when(mockClient.searchByTitle(eq("Clean Code"), any()))
                 .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), 2008))));
         List<BookResponse> result = service.searchByTitle("Clean Code");
         assertEquals(1, result.size());
@@ -37,7 +49,7 @@ class OpenLibraryServiceTest {
 
     @Test
     void shouldReturnBooksWithoutAuthorFromOpenLibrary(){
-        when(mockClient.searchByTitle("Clean Code"))
+        when(mockClient.searchByTitle(eq("Clean Code"), any()))
                 .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", null, 2008))));
         List<BookResponse> result = service.searchByTitle("Clean Code");
         assertEquals(1, result.size());
@@ -48,7 +60,7 @@ class OpenLibraryServiceTest {
 
     @Test
     void shouldReturnBooksWithoutYearFromOpenLibrary(){
-        when(mockClient.searchByTitle("Clean Code"))
+        when(mockClient.searchByTitle(eq("Clean Code"), any()))
                 .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), null))));
         List<BookResponse> result = service.searchByTitle("Clean Code");
         assertEquals(1, result.size());
@@ -59,7 +71,7 @@ class OpenLibraryServiceTest {
 
     @Test
     void shouldReturnEmptyListFromOpenLibrary(){
-        when(mockClient.searchByTitle("Clean Code"))
+        when(mockClient.searchByTitle(eq("Clean Code"), any()))
                 .thenReturn(new OpenLibraryResponse(0, List.of()));
         List<BookResponse> result = service.searchByTitle("Clean Code");
         assertTrue(result.isEmpty());

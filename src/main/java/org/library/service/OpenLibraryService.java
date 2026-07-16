@@ -16,6 +16,8 @@ public class OpenLibraryService {
 
     private final OpenLibraryClient client;
 
+    private static final List<String> FIELDS = List.of("title", "author_name", "first_publish_year");
+
     @Inject
     public OpenLibraryService(@RestClient OpenLibraryClient client) {
         this.client = client;
@@ -31,7 +33,7 @@ public class OpenLibraryService {
     }
 
     public List<BookResponse> searchByTitle(String title) {
-        return from(client.searchByTitle(title));
+        return from(client.searchByTitle(title, FIELDS));
     }
 
     private static String getAuthor(OpenLibraryDoc doc) {
