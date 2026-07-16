@@ -3,16 +3,17 @@ package org.library.service;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.library.dto.BookRequest;
 import org.library.dto.BookResponse;
 import org.library.entity.Book;
 import org.library.repository.BookRepository;
+import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class BookServiceTest {
 
@@ -37,6 +38,29 @@ class BookServiceTest {
 
         assertEquals(1, result.size());
         assertEquals("Clean Code", result.getFirst().title);
+    }
+
+    @Test
+    void shouldCreateBook() {
+        BookRequest request = new BookRequest("Clean Code", "Robert Martin", 2008);
+        BookResponse response = service.create(request);
+        assertEquals("Clean Code", response.title);
+        assertEquals("Robert Martin", response.author);
+        assertEquals(2008, response.year);
+        ArgumentCaptor<Book> bookCaptor = ArgumentCaptor.forClass(Book.class);
+        verify(mockRepo).persist(bookCaptor.capture());
+        assertEquals("Clean Code", bookCaptor.getValue().getTitle());
+        assertEquals("Robert Martin", bookCaptor.getValue().getAuthor());
+        assertEquals(2008, bookCaptor.getValue().getYear());
+    }
+
+    @Test
+    void shouldReturnBookById() {
+        Book book = new Book();
+        book.setTitle("Clean Code");
+        when(mockRepo.findByIdOptional(1L)).thenReturn(Optional.of(book));
+        BookResponse result = service.findById(1L);
+        assertEquals("Clean Code", result.title);
     }
 
     @Test
@@ -66,6 +90,5 @@ class BookServiceTest {
         List<BookResponse> result = service.searchByTitle("Clean Code");
         assertTrue(result.isEmpty());
     }
-
 
 }

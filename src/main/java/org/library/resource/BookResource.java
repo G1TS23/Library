@@ -70,8 +70,7 @@ public class BookResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getBookById(@PathParam("id") Long id) {
         BookResponse book = bookService.findById(id);
-        return Response.status(Response.Status.CREATED)
-                .entity(book)
+        return Response.ok(book)
                 .build();
     }
 

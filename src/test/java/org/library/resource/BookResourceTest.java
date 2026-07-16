@@ -37,6 +37,18 @@ class BookResourceTest {
     }
 
     @Test
+    void shouldReturn200WithBook() {
+        when(bookService.findById(1L)).thenReturn(
+                new BookResponse("Clean Code", "Robert Martin", 2008)
+        );
+        given()
+                .when().get("/books/1")
+                .then()
+                .statusCode(200)
+                .body("title", is("Clean Code"));
+    }
+
+    @Test
     void shouldReturn404WhenBookNotFound() {
         when(bookService.findById(99L))
                 .thenThrow(new NotFoundException("Book not found"));
