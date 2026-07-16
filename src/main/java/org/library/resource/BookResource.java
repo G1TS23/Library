@@ -83,13 +83,35 @@ public class BookResource {
      */
     @POST
     @Operation(summary = "Créer un livre")
-    @APIResponse(responseCode = "201", description = "Livre créé")
+    @APIResponse(
+            responseCode = "201",
+            description = "Livre créé")
     @APIResponse(responseCode = "400", description = "Requête invalide")
     @Transactional
     public Response createBook(BookRequest request) {
          BookResponse book = bookService.create(request);
         return Response.status(Response.Status.CREATED)
                 .entity(book)
+                .build();
+    }
+
+
+    @GET
+    @Operation(summary = "Récupérer une liste de livres de OpenLibrary")
+    @APIResponse(
+            responseCode = "200",
+            description = "Livre(s) récupéré(s)",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    schema = @Schema(
+                            type = SchemaType.ARRAY,
+                            implementation = BookResponse.class
+                    )
+            ))
+    @Path("/search")
+    public Response searchByTitleFromOpenLibrary(@QueryParam("title") String title){
+        List<BookResponse> books = bookService.searchByTitle(title);
+        return Response.ok(books)
                 .build();
     }
 }

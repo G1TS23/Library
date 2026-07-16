@@ -18,7 +18,7 @@ public class BookResponse {
 
     /** Publication year of the book. */
     @Schema(description = "Année de publication", examples = {"2008"})
-    public int year;
+    public Integer year;
 
     /** Default constructor required for JSON deserialization. */
     public BookResponse() {
@@ -29,7 +29,7 @@ public class BookResponse {
      * @param author author of the book
      * @param year   publication year
      */
-    public BookResponse(String title, String author, int year) {
+    public BookResponse(String title, String author, Integer year) {
         this.title = title;
         this.author = author;
         this.year = year;

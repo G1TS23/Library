@@ -18,6 +18,7 @@ import java.util.List;
 public class BookService {
 
     private final BookRepository bookRepository;
+    private final OpenLibraryService openLibraryService;
 
     private final int maxLoans;
 
@@ -27,8 +28,10 @@ public class BookService {
     @Inject
     public BookService(
             BookRepository bookRepository,
+            OpenLibraryService openLibraryService,
             @ConfigProperty(name = "library.max-loans", defaultValue = "5") int maxLoans) {
         this.bookRepository = bookRepository;
+        this.openLibraryService = openLibraryService;
         this.maxLoans = maxLoans;
     }
 
@@ -70,5 +73,9 @@ public class BookService {
         return bookRepository.findByIdOptional(id)
                 .map(BookResponse::from)
                 .orElseThrow(() -> new NotFoundException("Book not found: " + id));
+    }
+
+    public List<BookResponse> searchByTitle(String title) {
+        return openLibraryService.searchByTitle(title);
     }
 }
