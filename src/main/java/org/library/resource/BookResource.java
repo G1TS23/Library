@@ -2,6 +2,7 @@ package org.library.resource;
 
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -87,7 +88,7 @@ public class BookResource {
             description = "Livre créé")
     @APIResponse(responseCode = "400", description = "Requête invalide")
     @Transactional
-    public Response createBook(BookRequest request) {
+    public Response createBook(@Valid BookRequest request) {
          BookResponse book = bookService.create(request);
         return Response.status(Response.Status.CREATED)
                 .entity(book)

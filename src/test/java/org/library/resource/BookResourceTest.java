@@ -13,7 +13,9 @@ import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
@@ -57,6 +59,61 @@ class BookResourceTest {
                 .when().get("/books/99")
                 .then()
                 .statusCode(404);
+    }
+
+    @Test
+    void shouldReturn400WhenBookCreatedWithNoTitleProvided() {
+        BookRequest request = new BookRequest();
+        request.author = "Robert Martin";
+        request.year = 2008;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/books")
+                .then()
+                .statusCode(400);
+        verifyNoInteractions(bookService);
+    }
+
+    @Test
+    void shouldReturn400WhenBookCreatedWithYearZeroProvided() {
+        BookRequest request = new BookRequest();
+        request.title = "Clean Code";
+        request.author = "Robert Martin";
+        request.year = 0;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/books")
+                .then()
+                .statusCode(400);
+        verifyNoInteractions(bookService);
+    }
+
+    @Test
+    void shouldReturn201WhenBookCreatedWithNoAuthorProvided() {
+        BookRequest request = new BookRequest();
+        request.title = "Clean Code";
+        request.year = 2008;
+
+        when(bookService.create(any())).thenReturn(
+                new BookResponse("Clean Code", null, 2008)
+        );
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/books")
+                .then()
+                .statusCode(201)
+                .body("title", is("Clean Code"))
+                .body("author", nullValue())
+                .body("year", is(2008));
     }
 
     @Test

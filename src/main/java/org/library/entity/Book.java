@@ -1,6 +1,7 @@
 package org.library.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 
 /**
  * JPA entity representing a book stored in the database.
@@ -12,8 +13,11 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "books_seq")
     @SequenceGenerator(name = "books_SEQ", sequenceName = "books_SEQ", allocationSize = 1)
     private Long id;
+    @Column(nullable = false)
     private String title;
     private String author;
+    @Column(nullable = false)
+    @Min(1)
     private int year;
 
     /**
