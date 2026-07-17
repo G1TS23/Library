@@ -48,9 +48,20 @@ class OpenLibraryServiceTest {
     }
 
     @Test
-    void shouldReturnBooksWithoutAuthorFromOpenLibrary(){
+    void shouldReturnBooksWithAuthorNullFromOpenLibrary(){
         when(mockClient.searchByTitle(eq("Clean Code"), any()))
                 .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", null, 2008))));
+        List<BookResponse> result = service.searchByTitle("Clean Code");
+        assertEquals(1, result.size());
+        assertEquals("Clean Code", result.getFirst().title);
+        assertNull(result.getFirst().author);
+        assertEquals(2008, result.getFirst().year);
+    }
+
+    @Test
+    void shouldReturnBooksWithAuthorEmptyFromOpenLibrary(){
+        when(mockClient.searchByTitle(eq("Clean Code"), any()))
+                .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of(), 2008))));
         List<BookResponse> result = service.searchByTitle("Clean Code");
         assertEquals(1, result.size());
         assertEquals("Clean Code", result.getFirst().title);

@@ -73,4 +73,29 @@ class BookResourceTest {
                 .then()
                 .statusCode(201);
     }
+
+    @Test
+    void shouldReturn200WhenSearchBookFromOpenLibrary(){
+        when(bookService.searchByTitle("Clean Code"))
+                .thenReturn(List.of(new BookResponse("Clean Code", "Robert Martin", 2008)));
+        given()
+                .queryParam("title", "Clean Code")
+                .when()
+                .get("/books/search")
+                .then()
+                .statusCode(200)
+                .body("size()", is(1))
+                .body("[0].title", is("Clean Code"));
+    }
+
+    @Test
+    void shouldReturn200WhenSearchBookWithoutTitleFromOpenLibrary(){
+        when(bookService.searchByTitle(null))
+                .thenReturn(List.of());
+        given()
+                .when().get("/books/search")
+                .then()
+                .statusCode(200)
+                .body("size()", is(0));
+    }
 }
