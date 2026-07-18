@@ -13,5 +13,9 @@ import java.util.List;
 public interface OpenLibraryClient {
 
     @GET
-    OpenLibraryResponse searchByTitle(@QueryParam("title") String title, @QueryParam("fields") List<String> fields);
+    OpenLibraryResponse searchByTitle(
+            @QueryParam("title") String title,
+            @QueryParam("fields") List<String> fields,
+            @QueryParam("offset") Integer offset,
+            @QueryParam("limit") Integer limit);
 }

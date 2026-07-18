@@ -7,6 +7,7 @@ import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.library.dto.BookRequest;
 import org.library.dto.BookResponse;
+import org.library.dto.PagedResponse;
 import org.library.service.BookService;
 
 import java.util.List;
@@ -15,8 +16,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class BookResourceTest {
@@ -133,26 +133,79 @@ class BookResourceTest {
 
     @Test
     void shouldReturn200WhenSearchBookFromOpenLibrary(){
-        when(bookService.searchByTitle("Clean Code"))
-                .thenReturn(List.of(new BookResponse("Clean Code", "Robert Martin", 2008)));
+        when(bookService.searchByTitle("Clean Code", 0, 20))
+                .thenReturn(new PagedResponse(1, 0, 20, List.of(new BookResponse("Clean Code", "Robert Martin", 2008))));
         given()
                 .queryParam("title", "Clean Code")
+                .queryParam("offset", 0)
+                .queryParam("limit", 20)
                 .when()
                 .get("/books/search")
                 .then()
                 .statusCode(200)
-                .body("size()", is(1))
-                .body("[0].title", is("Clean Code"));
+                .body("total", is(1))
+                .body("offset", is(0))
+                .body("limit", is(20))
+                .body("items.size()", is(1))
+                .body("items[0].title", is("Clean Code"));
     }
 
     @Test
     void shouldReturn200WhenSearchBookWithoutTitleFromOpenLibrary(){
-        when(bookService.searchByTitle(null))
-                .thenReturn(List.of());
+        when(bookService.searchByTitle(null, 0, 20))
+                .thenReturn(new PagedResponse(0, 0, 20, List.of()));
         given()
+                .queryParam("offset", 0)
+                .queryParam("limit", 20)
                 .when().get("/books/search")
                 .then()
                 .statusCode(200)
-                .body("size()", is(0));
+                .body("items.size()", is(0));
+    }
+
+    @Test
+    void shouldReturn400WhenSearchBookWithOffsetNegative(){
+        given()
+                .queryParam("offset", -1)
+                .queryParam("limit", 20)
+                .when().get("/books/search")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void shouldReturn400WhenSearchBookWithLimitNotPositive(){
+        given()
+                .queryParam("offset", 0)
+                .queryParam("limit", 0)
+                .when().get("/books/search")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void shouldReturn400WhenSearchBookWithLimitOverFifty(){
+        given()
+                .queryParam("offset", 0)
+                .queryParam("limit", 51)
+                .when().get("/books/search")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void shouldHaveDefaultValueOnOffsetAndLimitWhenSearchBookWithoutQueryParams(){
+        when(bookService.searchByTitle(eq("Clean Code"), any(), any()))
+                .thenReturn(new PagedResponse(1, 0, 20, List.of(new BookResponse("Clean Code", "Robert Martin", 2008))));
+        given()
+                .queryParam("title", "Clean Code")
+                .when().get("/books/search")
+                .then()
+                .statusCode(200)
+                .body("offset", is(0))
+                .body("limit", is(20))
+                .body("items.size()", is(1))
+                .body("items[0].title", is("Clean Code"));
+        verify(bookService).searchByTitle("Clean Code", 0, 20);
     }
 }

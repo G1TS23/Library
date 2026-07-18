@@ -5,6 +5,7 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.library.client.OpenLibraryClient;
 import org.library.dto.BookResponse;
+import org.library.dto.PagedResponse;
 import org.library.dto.openlibrary.OpenLibraryDoc;
 import org.library.dto.openlibrary.OpenLibraryResponse;
 
@@ -23,17 +24,23 @@ public class OpenLibraryService {
         this.client = client;
     }
 
-    private static List<BookResponse> from(OpenLibraryResponse openLibraryResponses) {
-            return openLibraryResponses.docs.stream()
-                    .map(doc -> new BookResponse(
-                            doc.title,
-                            getAuthor(doc),
-                            doc.firstPublishYear))
+    private static PagedResponse from(OpenLibraryResponse openLibraryResponses) {
+        PagedResponse pagedResponse = new PagedResponse();
+        pagedResponse.total = openLibraryResponses.numFound;
+        pagedResponse.items = openLibraryResponses.docs.stream()
+                .map(doc -> new BookResponse(
+                        doc.title,
+                        getAuthor(doc),
+                        doc.firstPublishYear))
                     .toList();
+        return pagedResponse;
     }
 
-    public List<BookResponse> searchByTitle(String title) {
-        return from(client.searchByTitle(title, FIELDS));
+    public PagedResponse searchByTitle(String title, Integer offset, Integer limit) {
+        PagedResponse pagedResponse = from(client.searchByTitle(title, FIELDS, offset, limit));
+        pagedResponse.limit = limit;
+        pagedResponse.offset = offset;
+        return pagedResponse;
     }
 
     private static String getAuthor(OpenLibraryDoc doc) {

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.library.dto.BookRequest;
 import org.library.dto.BookResponse;
+import org.library.dto.PagedResponse;
 import org.library.entity.Book;
 import org.library.repository.BookRepository;
 import org.mockito.ArgumentCaptor;
@@ -73,22 +74,27 @@ class BookServiceTest {
     @Test
     void shouldReturnBooksFromOpenLibrary(){
         when(mockOpenLibraryService
-                .searchByTitle("Clean Code"))
-                .thenReturn(List.of(new BookResponse("Clean Code", "Robert Martin", 2008)));
-        List<BookResponse> result = service.searchByTitle("Clean Code");
-        assertEquals(1, result.size());
-        assertEquals("Clean Code", result.getFirst().title);
-        assertEquals("Robert Martin", result.getFirst().author);
-        assertEquals(2008, result.getFirst().year);
+                .searchByTitle("Clean Code", 0, 20))
+                .thenReturn(new PagedResponse(1, 0, 20, List.of(new BookResponse("Clean Code", "Robert Martin", 2008))));
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        assertEquals(1, result.total);
+        assertEquals(0, result.offset);
+        assertEquals(20, result.limit);
+        assertEquals(1, result.items.size());
+        assertEquals("Clean Code", result.items.getFirst().title);
+        assertEquals("Robert Martin", result.items.getFirst().author);
+        assertEquals(2008, result.items.getFirst().year);
     }
 
     @Test
     void shouldReturnEmptyListFromOpenLibrary(){
         when(mockOpenLibraryService
-                .searchByTitle("Clean Code"))
-                .thenReturn(List.of());
-        List<BookResponse> result = service.searchByTitle("Clean Code");
-        assertTrue(result.isEmpty());
+                .searchByTitle("Clean Code", 0, 20))
+                .thenReturn(new PagedResponse(0, 0, 20, List.of()));
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        assertEquals(0, result.total);
+        assertEquals(0, result.offset);
+        assertEquals(20, result.limit);
+        assertTrue(result.items.isEmpty());
     }
-
 }

@@ -7,6 +7,7 @@ import jakarta.ws.rs.NotFoundException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.library.dto.BookRequest;
 import org.library.dto.BookResponse;
+import org.library.dto.PagedResponse;
 import org.library.entity.Book;
 import org.library.repository.BookRepository;
 import java.util.List;
@@ -75,7 +76,14 @@ public class BookService {
                 .orElseThrow(() -> new NotFoundException("Book not found: " + id));
     }
 
-    public List<BookResponse> searchByTitle(String title) {
-        return openLibraryService.searchByTitle(title);
+    /**
+     * Search for a book by its title
+     * @param title of the book
+     * @param offset number of results per page
+     * @param limit maximum number of results to return
+     * @return a PagedResponse containing the search results
+     */
+    public PagedResponse searchByTitle(String title, Integer offset, Integer limit) {
+        return openLibraryService.searchByTitle(title, offset, limit);
     }
 }

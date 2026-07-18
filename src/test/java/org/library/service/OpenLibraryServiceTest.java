@@ -3,7 +3,7 @@ package org.library.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.library.client.OpenLibraryClient;
-import org.library.dto.BookResponse;
+import org.library.dto.PagedResponse;
 import org.library.dto.openlibrary.OpenLibraryDoc;
 import org.library.dto.openlibrary.OpenLibraryResponse;
 
@@ -28,64 +28,78 @@ class OpenLibraryServiceTest {
 
     @Test
     void shouldRequestOnlyNeededFields(){
-        when(mockClient.searchByTitle(eq("Clean Code"), any()))
+        when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), 2008))));
 
-        service.searchByTitle("Clean Code");
+        service.searchByTitle("Clean Code", 0, 20);
 
-        verify(mockClient).searchByTitle("Clean Code", MOCK_FIELDS);
+        verify(mockClient).searchByTitle("Clean Code", MOCK_FIELDS, 0, 20);
     }
 
     @Test
     void shouldReturnBooksFromOpenLibrary(){
-        when(mockClient.searchByTitle(eq("Clean Code"), any()))
+        when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), 2008))));
-        List<BookResponse> result = service.searchByTitle("Clean Code");
-        assertEquals(1, result.size());
-        assertEquals("Clean Code", result.getFirst().title);
-        assertEquals("Robert Martin", result.getFirst().author);
-        assertEquals(2008, result.getFirst().year);
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        assertEquals(1, result.total);
+        assertEquals(0, result.offset);
+        assertEquals(20, result.limit);
+        assertEquals(1, result.items.size());
+        assertEquals("Clean Code", result.items.getFirst().title);
+        assertEquals("Robert Martin", result.items.getFirst().author);
+        assertEquals(2008, result.items.getFirst().year);
     }
 
     @Test
     void shouldReturnBooksWithAuthorNullFromOpenLibrary(){
-        when(mockClient.searchByTitle(eq("Clean Code"), any()))
+        when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", null, 2008))));
-        List<BookResponse> result = service.searchByTitle("Clean Code");
-        assertEquals(1, result.size());
-        assertEquals("Clean Code", result.getFirst().title);
-        assertNull(result.getFirst().author);
-        assertEquals(2008, result.getFirst().year);
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        assertEquals(1, result.total);
+        assertEquals(0, result.offset);
+        assertEquals(20, result.limit);
+        assertEquals(1, result.items.size());
+        assertEquals("Clean Code", result.items.getFirst().title);
+        assertNull(result.items.getFirst().author);
+        assertEquals(2008, result.items.getFirst().year);
     }
 
     @Test
     void shouldReturnBooksWithAuthorEmptyFromOpenLibrary(){
-        when(mockClient.searchByTitle(eq("Clean Code"), any()))
+        when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of(), 2008))));
-        List<BookResponse> result = service.searchByTitle("Clean Code");
-        assertEquals(1, result.size());
-        assertEquals("Clean Code", result.getFirst().title);
-        assertNull(result.getFirst().author);
-        assertEquals(2008, result.getFirst().year);
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        assertEquals(1, result.total);
+        assertEquals(0, result.offset);
+        assertEquals(20, result.limit);
+        assertEquals(1, result.items.size());
+        assertEquals("Clean Code", result.items.getFirst().title);
+        assertNull(result.items.getFirst().author);
+        assertEquals(2008, result.items.getFirst().year);
     }
 
     @Test
     void shouldReturnBooksWithoutYearFromOpenLibrary(){
-        when(mockClient.searchByTitle(eq("Clean Code"), any()))
+        when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), null))));
-        List<BookResponse> result = service.searchByTitle("Clean Code");
-        assertEquals(1, result.size());
-        assertEquals("Clean Code", result.getFirst().title);
-        assertEquals("Robert Martin", result.getFirst().author);
-        assertNull(result.getFirst().year);
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        assertEquals(1, result.total);
+        assertEquals(0, result.offset);
+        assertEquals(20, result.limit);
+        assertEquals(1, result.items.size());
+        assertEquals("Clean Code", result.items.getFirst().title);
+        assertEquals("Robert Martin", result.items.getFirst().author);
+        assertNull(result.items.getFirst().year);
     }
 
     @Test
     void shouldReturnEmptyListFromOpenLibrary(){
-        when(mockClient.searchByTitle(eq("Clean Code"), any()))
+        when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(new OpenLibraryResponse(0, List.of()));
-        List<BookResponse> result = service.searchByTitle("Clean Code");
-        assertTrue(result.isEmpty());
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        assertEquals(0, result.total);
+        assertEquals(0, result.offset);
+        assertEquals(20, result.limit);
+        assertTrue(result.items.isEmpty());
     }
-
 }

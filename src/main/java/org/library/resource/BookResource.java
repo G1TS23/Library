@@ -3,6 +3,8 @@ package org.library.resource;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -14,6 +16,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.library.dto.BookRequest;
 import org.library.dto.BookResponse;
+import org.library.dto.PagedResponse;
 import org.library.service.BookService;
 import java.util.List;
 
@@ -109,9 +112,20 @@ public class BookResource {
                     )
             ))
     @Path("/search")
-    public Response searchByTitleFromOpenLibrary(@QueryParam("title") String title){
-        List<BookResponse> books = bookService.searchByTitle(title);
-        return Response.ok(books)
+    public Response searchByTitleFromOpenLibrary(
+            @QueryParam("title")
+            String title,
+            @QueryParam("offset")
+            @DefaultValue("0")
+            @Min(value = 0, message = "Le décalage doit être positif ou nul")
+            Integer offset,
+            @QueryParam("limit")
+            @DefaultValue("20")
+            @Min(value = 1, message = "La limite doit être un nombre positif")
+            @Max(value = 50, message = "La limite ne peut pas dépasser 50")
+            Integer limit) {
+        PagedResponse pagedResponse = bookService.searchByTitle(title, offset, limit);
+        return Response.ok(pagedResponse)
                 .build();
     }
 }
