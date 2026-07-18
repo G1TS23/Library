@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Min;
 @Table(name = "books")
 public class Book {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "books_seq")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "books_SEQ")
     @SequenceGenerator(name = "books_SEQ", sequenceName = "books_SEQ", allocationSize = 1)
     private Long id;
     @Column(nullable = false)
