@@ -107,8 +107,7 @@ public class BookResource {
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON,
                     schema = @Schema(
-                            type = SchemaType.ARRAY,
-                            implementation = BookResponse.class
+                            implementation = PagedResponse.class
                     )
             ))
     @Path("/search")
