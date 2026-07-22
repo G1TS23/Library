@@ -86,4 +86,14 @@ public class BookService {
     public PagedResponse searchByTitle(String title, Integer offset, Integer limit) {
         return openLibraryService.searchByTitle(title, offset, limit);
     }
+
+    /**
+     * Deletes a book by its identifier.
+     *
+     * @param id identifier of the book to delete
+     */
+    @Transactional
+    public void deleteById(Long id) {
+        bookRepository.deleteById(id);
+    }
 }

@@ -1,5 +1,6 @@
 package org.library.resource;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -91,6 +92,7 @@ public class BookResource {
             description = "Livre créé")
     @APIResponse(responseCode = "400", description = "Requête invalide")
     @Transactional
+    @RolesAllowed("ADMIN")
     public Response createBook(@Valid BookRequest request) {
          BookResponse book = bookService.create(request);
         return Response.status(Response.Status.CREATED)
@@ -98,7 +100,31 @@ public class BookResource {
                 .build();
     }
 
+    /**
+     * Deletes a book by its identifier.
+     *
+     * @param id of the book to delete
+     * @return 204 if the book was deleted, or 404 if not found
+     */
+    @DELETE
+    @Path("/{id}")
+    @Operation(summary = "Supprimer un livre")
+    @APIResponse(responseCode = "204", description = "Livre supprimé")
+    @APIResponse(responseCode = "404", description = "Livre non trouvé")
+    @RolesAllowed("ADMIN")
+    public Response deleteBook(@PathParam("id") Long id) {
+        bookService.deleteById(id);
+        return Response.noContent().build();
+    }
 
+    /**
+     * Searches for books by title in OpenLibrary.
+     *
+     * @param title the title to search for
+     * @param offset the starting point for pagination
+     * @param limit the maximum number of results to return per page
+     * @return a paged response containing the search results
+     */
     @GET
     @Operation(summary = "Récupérer une liste de livres de OpenLibrary")
     @APIResponse(

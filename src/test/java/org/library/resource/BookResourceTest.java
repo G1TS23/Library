@@ -2,7 +2,12 @@ package org.library.resource;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
+import io.quarkus.test.security.TestSecurity;
+import io.quarkus.test.security.jwt.Claim;
+import io.quarkus.test.security.jwt.JwtSecurity;
 import io.restassured.http.ContentType;
+import io.smallrye.jwt.build.Jwt;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.library.dto.BookRequest;
@@ -19,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
+@TestProfile(JwtTestProfile.class)
 class BookResourceTest {
 
     @InjectMock
@@ -62,6 +68,8 @@ class BookResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "admin", roles = "ADMIN")
+    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
     void shouldReturn400WhenBookCreatedWithNoTitleProvided() {
         BookRequest request = new BookRequest();
         request.author = "Robert Martin";
@@ -78,6 +86,8 @@ class BookResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "admin", roles = "ADMIN")
+    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
     void shouldReturn400WhenBookCreatedWithYearZeroProvided() {
         BookRequest request = new BookRequest();
         request.title = "Clean Code";
@@ -95,6 +105,44 @@ class BookResourceTest {
     }
 
     @Test
+    void shouldReturn401WhenBookCreatedWithoutTokenProvided() {
+        BookRequest request = new BookRequest();
+        request.title = "Clean Code";
+        request.author = "Robert Martin";
+        request.year = 2008;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/books")
+                .then()
+                .statusCode(401);
+        verifyNoInteractions(bookService);
+    }
+
+    @Test
+    @TestSecurity(user = "user", roles = "USER")
+    @JwtSecurity(claims = { @Claim(key = "email", value = "user@library.com") })
+    void shouldReturn403WhenBookCreatedWithUserRole() {
+        BookRequest request = new BookRequest();
+        request.title = "Clean Code";
+        request.author = "Robert Martin";
+        request.year = 2008;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/books")
+                .then()
+                .statusCode(403);
+        verifyNoInteractions(bookService);
+    }
+
+    @Test
+    @TestSecurity(user = "admin", roles = "ADMIN")
+    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
     void shouldReturn201WhenBookCreatedWithNoAuthorProvided() {
         BookRequest request = new BookRequest();
         request.title = "Clean Code";
@@ -117,6 +165,64 @@ class BookResourceTest {
     }
 
     @Test
+    void shouldReturn201WhenBookCreatedWithForgedTokenProvided() {
+        BookRequest request = new BookRequest();
+        request.title = "Clean Code";
+        request.author = "Robert Martin";
+        request.year = 2008;
+
+        when(bookService.create(any())).thenReturn(
+                new BookResponse("Clean Code", "Robert Martin", 2008)
+        );
+
+        String token = Jwt.claims().issuer("https://example.com/issuer")
+                .upn("admin@library.com")
+                .groups("ADMIN")
+                .sign(JwtTestProfile.PRIVATE_KEY);
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .header("Authorization", "Bearer " + token)
+                .when()
+                .post("/books")
+                .then()
+                .statusCode(201)
+                .body("title", is("Clean Code"))
+                .body("author", is("Robert Martin"))
+                .body("year", is(2008));
+    }
+
+    @Test
+    void shouldReturn401WhenBookCreatedWithForgedTokenProvidedWithWrongIssuer() {
+        BookRequest request = new BookRequest();
+        request.title = "Clean Code";
+        request.author = "Robert Martin";
+        request.year = 2008;
+
+        when(bookService.create(any())).thenReturn(
+                new BookResponse("Clean Code", "Robert Martin", 2008)
+        );
+
+        String token = Jwt.claims().issuer("https://forged-issuer.com")
+                .upn("admin@library.com")
+                .groups("ADMIN")
+                .sign(JwtTestProfile.PRIVATE_KEY);
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .header("Authorization", "Bearer " + token)
+                .when()
+                .post("/books")
+                .then()
+                .statusCode(401);
+        verifyNoInteractions(bookService);
+    }
+
+    @Test
+    @TestSecurity(user = "admin", roles = "ADMIN")
+    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
     void shouldReturn201WhenBookCreated() {
         BookRequest request = new BookRequest("Clean Code", "Robert Martin", 2008);
         when(bookService.create(any())).thenReturn(
@@ -207,5 +313,51 @@ class BookResourceTest {
                 .body("items.size()", is(1))
                 .body("items[0].title", is("Clean Code"));
         verify(bookService).searchByTitle("Clean Code", 0, 20);
+    }
+
+    @Test
+    @TestSecurity(user = "admin", roles = "ADMIN")
+    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
+    void shouldReturn204WhenBookDeleted() {
+        given()
+                .pathParam("id", 1L)
+                .when().delete("/books/{id}")
+                .then()
+                .statusCode(204);
+        verify(bookService).deleteById(1L);
+    }
+
+    @Test
+    @TestSecurity(user = "admin", roles = "ADMIN")
+    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
+    void shouldReturn204WhenBookDeletedWithWrongId() {
+        given()
+                .pathParam("id", 3L)
+                .when().delete("/books/{id}")
+                .then()
+                .statusCode(204);
+        verify(bookService).deleteById(3L);
+    }
+
+    @Test
+    @TestSecurity(user = "user", roles = "USER")
+    @JwtSecurity(claims = { @Claim(key = "email", value = "user@library.com") })
+    void shouldReturn403WhenBookDeletedWithoutProperAuthorization() {
+        given()
+                .pathParam("id", 1L)
+                .when().delete("/books/{id}")
+                .then()
+                .statusCode(403);
+        verifyNoInteractions(bookService);
+    }
+
+    @Test
+    void shouldReturn401WhenBookDeletedWithoutTokenProvided() {
+        given()
+                .pathParam("id", 1L)
+                .when().delete("/books/{id}")
+                .then()
+                .statusCode(401);
+        verifyNoInteractions(bookService);
     }
 }
