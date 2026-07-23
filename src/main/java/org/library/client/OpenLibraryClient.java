@@ -1,5 +1,6 @@
 package org.library.client;
 
+import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
@@ -20,13 +21,13 @@ public interface OpenLibraryClient {
     @Retry(maxRetries = 3)
     @Timeout(5000)
     @Fallback(fallbackMethod = "fallbackSearchByTitle")
-    OpenLibraryResponse searchByTitle(
+    Uni<OpenLibraryResponse> searchByTitle(
             @QueryParam("title") String title,
             @QueryParam("fields") List<String> fields,
             @QueryParam("offset") Integer offset,
             @QueryParam("limit") Integer limit);
 
-    default OpenLibraryResponse fallbackSearchByTitle(String title, List<String> fields, Integer offset, Integer limit) {
-        throw new ServiceUnavailableException("Open Library service is unavailable. Please try again later.", 15L);
+    default Uni<OpenLibraryResponse> fallbackSearchByTitle(String title, List<String> fields, Integer offset, Integer limit) {
+        return Uni.createFrom().failure(new ServiceUnavailableException("Open Library service is unavailable. Please try again later.", 15L));
     }
 }

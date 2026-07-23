@@ -37,7 +37,8 @@ public class OpenLibraryService {
     }
 
     public PagedResponse searchByTitle(String title, Integer offset, Integer limit) {
-        PagedResponse pagedResponse = from(client.searchByTitle(title, FIELDS, offset, limit));
+        OpenLibraryResponse response = client.searchByTitle(title, FIELDS, offset, limit).await().indefinitely();
+        PagedResponse pagedResponse = from(response);
         pagedResponse.limit = limit;
         pagedResponse.offset = offset;
         return pagedResponse;

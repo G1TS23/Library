@@ -1,5 +1,6 @@
 package org.library.service;
 
+import io.smallrye.mutiny.Uni;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.library.client.OpenLibraryClient;
@@ -29,7 +30,7 @@ class OpenLibraryServiceTest {
     @Test
     void shouldRequestOnlyNeededFields(){
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
-                .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), 2008))));
+                .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), 2008)))));
 
         service.searchByTitle("Clean Code", 0, 20);
 
@@ -39,7 +40,7 @@ class OpenLibraryServiceTest {
     @Test
     void shouldReturnBooksFromOpenLibrary(){
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
-                .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), 2008))));
+                .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), 2008)))));
         PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
         assertEquals(1, result.total);
         assertEquals(0, result.offset);
@@ -53,7 +54,7 @@ class OpenLibraryServiceTest {
     @Test
     void shouldReturnBooksWithAuthorNullFromOpenLibrary(){
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
-                .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", null, 2008))));
+                .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", null, 2008)))));
         PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
         assertEquals(1, result.total);
         assertEquals(0, result.offset);
@@ -67,7 +68,7 @@ class OpenLibraryServiceTest {
     @Test
     void shouldReturnBooksWithAuthorEmptyFromOpenLibrary(){
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
-                .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of(), 2008))));
+                .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of(), 2008)))));
         PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
         assertEquals(1, result.total);
         assertEquals(0, result.offset);
@@ -81,7 +82,7 @@ class OpenLibraryServiceTest {
     @Test
     void shouldReturnBooksWithoutYearFromOpenLibrary(){
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
-                .thenReturn(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), null))));
+                .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), null)))));
         PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
         assertEquals(1, result.total);
         assertEquals(0, result.offset);
@@ -95,7 +96,7 @@ class OpenLibraryServiceTest {
     @Test
     void shouldReturnEmptyListFromOpenLibrary(){
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
-                .thenReturn(new OpenLibraryResponse(0, List.of()));
+                .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(0, List.of())));
         PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
         assertEquals(0, result.total);
         assertEquals(0, result.offset);
