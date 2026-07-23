@@ -72,6 +72,22 @@ class BookServiceTest {
     }
 
     @Test
+    void shouldReturnTrueWhenDeleteABookWithExistingId(){
+        when(mockRepo.deleteById(1L)).thenReturn(true);
+        boolean result = service.deleteById(1L);
+        assertTrue(result);
+        verify(mockRepo).deleteById(1L);
+    }
+
+    @Test
+    void shouldReturnFalseWhenDeleteABookWithNonExistingId(){
+        when(mockRepo.deleteById(3L)).thenReturn(false);
+        boolean result = service.deleteById(3L);
+        assertFalse(result);
+        verify(mockRepo).deleteById(3L);
+    }
+
+    @Test
     void shouldReturnBooksFromOpenLibrary(){
         when(mockOpenLibraryService
                 .searchByTitle("Clean Code", 0, 20))

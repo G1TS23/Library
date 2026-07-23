@@ -93,7 +93,7 @@ public class BookService {
      * @param id identifier of the book to delete
      */
     @Transactional
-    public void deleteById(Long id) {
-        bookRepository.deleteById(id);
+    public boolean deleteById(Long id) {
+        return bookRepository.deleteById(id);
     }
 }

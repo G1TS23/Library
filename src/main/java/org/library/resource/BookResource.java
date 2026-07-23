@@ -113,8 +113,11 @@ public class BookResource {
     @APIResponse(responseCode = "404", description = "Livre non trouvé")
     @RolesAllowed("ADMIN")
     public Response deleteBook(@PathParam("id") Long id) {
-        bookService.deleteById(id);
-        return Response.noContent().build();
+        if(bookService.deleteById(id)) {
+            return Response.noContent().build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
 
     /**

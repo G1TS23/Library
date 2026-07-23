@@ -306,6 +306,7 @@ class BookResourceTest {
     @TestSecurity(user = "admin", roles = "ADMIN")
     @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
     void shouldReturn204WhenBookDeleted() {
+        when(bookService.deleteById(1L)).thenReturn(true);
         given()
                 .pathParam("id", 1L)
                 .when().delete("/books/{id}")
@@ -317,12 +318,13 @@ class BookResourceTest {
     @Test
     @TestSecurity(user = "admin", roles = "ADMIN")
     @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
-    void shouldReturn204WhenBookDeletedWithWrongId() {
+    void shouldReturn404WhenBookDeletedWithWrongId() {
+        when(bookService.deleteById(3L)).thenReturn(false);
         given()
                 .pathParam("id", 3L)
                 .when().delete("/books/{id}")
                 .then()
-                .statusCode(204);
+                .statusCode(404);
         verify(bookService).deleteById(3L);
     }
 
