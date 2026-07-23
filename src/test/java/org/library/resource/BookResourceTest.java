@@ -10,6 +10,8 @@ import io.restassured.http.ContentType;
 import io.smallrye.jwt.build.Jwt;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.library.dto.BookRequest;
 import org.library.dto.BookResponse;
 import org.library.dto.PagedResponse;
@@ -269,31 +271,16 @@ class BookResourceTest {
                 .body("items.size()", is(0));
     }
 
-    @Test
-    void shouldReturn400WhenSearchBookWithOffsetNegative(){
+    @ParameterizedTest(name = "offset={0}, limit={1}")
+    @CsvSource({
+        "-1,20",
+        "0,0",
+        "0,51"
+    })
+    void shouldReturn400WhenSearchBookWithOutOfBoundsLimitOrOffset(int offset, int limit){
         given()
-                .queryParam("offset", -1)
-                .queryParam("limit", 20)
-                .when().get("/books/search")
-                .then()
-                .statusCode(400);
-    }
-
-    @Test
-    void shouldReturn400WhenSearchBookWithLimitNotPositive(){
-        given()
-                .queryParam("offset", 0)
-                .queryParam("limit", 0)
-                .when().get("/books/search")
-                .then()
-                .statusCode(400);
-    }
-
-    @Test
-    void shouldReturn400WhenSearchBookWithLimitOverFifty(){
-        given()
-                .queryParam("offset", 0)
-                .queryParam("limit", 51)
+                .queryParam("offset", offset)
+                .queryParam("limit", limit)
                 .when().get("/books/search")
                 .then()
                 .statusCode(400);
