@@ -1,5 +1,6 @@
 package org.library.resource;
 
+import io.smallrye.mutiny.Uni;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -19,6 +20,7 @@ import org.library.dto.BookRequest;
 import org.library.dto.BookResponse;
 import org.library.dto.PagedResponse;
 import org.library.service.BookService;
+
 import java.util.List;
 
 /**
@@ -94,7 +96,7 @@ public class BookResource {
     @Transactional
     @RolesAllowed("ADMIN")
     public Response createBook(@Valid BookRequest request) {
-         BookResponse book = bookService.create(request);
+        BookResponse book = bookService.create(request);
         return Response.status(Response.Status.CREATED)
                 .entity(book)
                 .build();
@@ -113,7 +115,7 @@ public class BookResource {
     @APIResponse(responseCode = "404", description = "Livre non trouvé")
     @RolesAllowed("ADMIN")
     public Response deleteBook(@PathParam("id") Long id) {
-        if(bookService.deleteById(id)) {
+        if (bookService.deleteById(id)) {
             return Response.noContent().build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -123,9 +125,9 @@ public class BookResource {
     /**
      * Searches for books by title in OpenLibrary.
      *
-     * @param title the title to search for
+     * @param title  the title to search for
      * @param offset the starting point for pagination
-     * @param limit the maximum number of results to return per page
+     * @param limit  the maximum number of results to return per page
      * @return a paged response containing the search results
      */
     @GET
@@ -140,7 +142,7 @@ public class BookResource {
                     )
             ))
     @Path("/search")
-    public Response searchByTitleFromOpenLibrary(
+    public Uni<Response> searchByTitleFromOpenLibrary(
             @QueryParam("title")
             String title,
             @QueryParam("offset")
@@ -152,8 +154,7 @@ public class BookResource {
             @Min(value = 1, message = "La limite doit être un nombre positif")
             @Max(value = 50, message = "La limite ne peut pas dépasser 50")
             Integer limit) {
-        PagedResponse pagedResponse = bookService.searchByTitle(title, offset, limit);
-        return Response.ok(pagedResponse)
-                .build();
+        return bookService.searchByTitle(title, offset, limit)
+                .onItem().transform(response -> Response.ok(response).build());
     }
 }

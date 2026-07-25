@@ -1,5 +1,6 @@
 package org.library.service;
 
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -10,6 +11,7 @@ import org.library.dto.BookResponse;
 import org.library.dto.PagedResponse;
 import org.library.entity.Book;
 import org.library.repository.BookRepository;
+
 import java.util.List;
 
 /**
@@ -78,12 +80,13 @@ public class BookService {
 
     /**
      * Search for a book by its title
-     * @param title of the book
+     *
+     * @param title  of the book
      * @param offset number of results per page
-     * @param limit maximum number of results to return
+     * @param limit  maximum number of results to return
      * @return a PagedResponse containing the search results
      */
-    public PagedResponse searchByTitle(String title, Integer offset, Integer limit) {
+    public Uni<PagedResponse> searchByTitle(String title, Integer offset, Integer limit) {
         return openLibraryService.searchByTitle(title, offset, limit);
     }
 

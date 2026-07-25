@@ -22,26 +22,26 @@ class OpenLibraryServiceTest {
     private static final List<String> MOCK_FIELDS = List.of("title", "author_name", "first_publish_year");
 
     @BeforeEach
-    void setup(){
+    void setup() {
         mockClient = mock(OpenLibraryClient.class);
         service = new OpenLibraryService(mockClient);
     }
 
     @Test
-    void shouldRequestOnlyNeededFields(){
+    void shouldRequestOnlyNeededFields() {
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), 2008)))));
 
-        service.searchByTitle("Clean Code", 0, 20);
+        service.searchByTitle("Clean Code", 0, 20).await().indefinitely();
 
         verify(mockClient).searchByTitle("Clean Code", MOCK_FIELDS, 0, 20);
     }
 
     @Test
-    void shouldReturnBooksFromOpenLibrary(){
+    void shouldReturnBooksFromOpenLibrary() {
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), 2008)))));
-        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20).await().indefinitely();
         assertEquals(1, result.total);
         assertEquals(0, result.offset);
         assertEquals(20, result.limit);
@@ -52,10 +52,10 @@ class OpenLibraryServiceTest {
     }
 
     @Test
-    void shouldReturnBooksWithAuthorNullFromOpenLibrary(){
+    void shouldReturnBooksWithAuthorNullFromOpenLibrary() {
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", null, 2008)))));
-        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20).await().indefinitely();
         assertEquals(1, result.total);
         assertEquals(0, result.offset);
         assertEquals(20, result.limit);
@@ -66,10 +66,10 @@ class OpenLibraryServiceTest {
     }
 
     @Test
-    void shouldReturnBooksWithAuthorEmptyFromOpenLibrary(){
+    void shouldReturnBooksWithAuthorEmptyFromOpenLibrary() {
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of(), 2008)))));
-        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20).await().indefinitely();
         assertEquals(1, result.total);
         assertEquals(0, result.offset);
         assertEquals(20, result.limit);
@@ -80,10 +80,10 @@ class OpenLibraryServiceTest {
     }
 
     @Test
-    void shouldReturnBooksWithoutYearFromOpenLibrary(){
+    void shouldReturnBooksWithoutYearFromOpenLibrary() {
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(1, List.of(new OpenLibraryDoc("Clean Code", List.of("Robert Martin"), null)))));
-        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20).await().indefinitely();
         assertEquals(1, result.total);
         assertEquals(0, result.offset);
         assertEquals(20, result.limit);
@@ -94,10 +94,10 @@ class OpenLibraryServiceTest {
     }
 
     @Test
-    void shouldReturnEmptyListFromOpenLibrary(){
+    void shouldReturnEmptyListFromOpenLibrary() {
         when(mockClient.searchByTitle(eq("Clean Code"), any(), eq(0), eq(20)))
                 .thenReturn(Uni.createFrom().item(new OpenLibraryResponse(0, List.of())));
-        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20).await().indefinitely();
         assertEquals(0, result.total);
         assertEquals(0, result.offset);
         assertEquals(20, result.limit);

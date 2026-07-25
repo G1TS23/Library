@@ -8,6 +8,7 @@ import io.quarkus.test.security.jwt.Claim;
 import io.quarkus.test.security.jwt.JwtSecurity;
 import io.restassured.http.ContentType;
 import io.smallrye.jwt.build.Jwt;
+import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -71,7 +72,7 @@ class BookResourceTest {
 
     @Test
     @TestSecurity(user = "admin", roles = "ADMIN")
-    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
+    @JwtSecurity(claims = {@Claim(key = "email", value = "admin@library.com")})
     void shouldReturn400WhenBookCreatedWithNoTitleProvided() {
         BookRequest request = new BookRequest();
         request.author = "Robert Martin";
@@ -89,7 +90,7 @@ class BookResourceTest {
 
     @Test
     @TestSecurity(user = "admin", roles = "ADMIN")
-    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
+    @JwtSecurity(claims = {@Claim(key = "email", value = "admin@library.com")})
     void shouldReturn400WhenBookCreatedWithYearZeroProvided() {
         BookRequest request = new BookRequest();
         request.title = "Clean Code";
@@ -125,7 +126,7 @@ class BookResourceTest {
 
     @Test
     @TestSecurity(user = "user", roles = "USER")
-    @JwtSecurity(claims = { @Claim(key = "email", value = "user@library.com") })
+    @JwtSecurity(claims = {@Claim(key = "email", value = "user@library.com")})
     void shouldReturn403WhenBookCreatedWithUserRole() {
         BookRequest request = new BookRequest();
         request.title = "Clean Code";
@@ -144,7 +145,7 @@ class BookResourceTest {
 
     @Test
     @TestSecurity(user = "admin", roles = "ADMIN")
-    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
+    @JwtSecurity(claims = {@Claim(key = "email", value = "admin@library.com")})
     void shouldReturn201WhenBookCreatedWithNoAuthorProvided() {
         BookRequest request = new BookRequest();
         request.title = "Clean Code";
@@ -224,7 +225,7 @@ class BookResourceTest {
 
     @Test
     @TestSecurity(user = "admin", roles = "ADMIN")
-    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
+    @JwtSecurity(claims = {@Claim(key = "email", value = "admin@library.com")})
     void shouldReturn201WhenBookCreated() {
         BookRequest request = new BookRequest("Clean Code", "Robert Martin", 2008);
         when(bookService.create(any())).thenReturn(
@@ -240,9 +241,9 @@ class BookResourceTest {
     }
 
     @Test
-    void shouldReturn200WhenSearchBookFromOpenLibrary(){
+    void shouldReturn200WhenSearchBookFromOpenLibrary() {
         when(bookService.searchByTitle("Clean Code", 0, 20))
-                .thenReturn(new PagedResponse(1, 0, 20, List.of(new BookResponse("Clean Code", "Robert Martin", 2008))));
+                .thenReturn(Uni.createFrom().item(new PagedResponse(1, 0, 20, List.of(new BookResponse("Clean Code", "Robert Martin", 2008)))));
         given()
                 .queryParam("title", "Clean Code")
                 .queryParam("offset", 0)
@@ -259,9 +260,9 @@ class BookResourceTest {
     }
 
     @Test
-    void shouldReturn200WhenSearchBookWithoutTitleFromOpenLibrary(){
+    void shouldReturn200WhenSearchBookWithoutTitleFromOpenLibrary() {
         when(bookService.searchByTitle(null, 0, 20))
-                .thenReturn(new PagedResponse(0, 0, 20, List.of()));
+                .thenReturn(Uni.createFrom().item(new PagedResponse(0, 0, 20, List.of())));
         given()
                 .queryParam("offset", 0)
                 .queryParam("limit", 20)
@@ -273,11 +274,11 @@ class BookResourceTest {
 
     @ParameterizedTest(name = "offset={0}, limit={1}")
     @CsvSource({
-        "-1,20",
-        "0,0",
-        "0,51"
+            "-1,20",
+            "0,0",
+            "0,51"
     })
-    void shouldReturn400WhenSearchBookWithOutOfBoundsLimitOrOffset(int offset, int limit){
+    void shouldReturn400WhenSearchBookWithOutOfBoundsLimitOrOffset(int offset, int limit) {
         given()
                 .queryParam("offset", offset)
                 .queryParam("limit", limit)
@@ -287,9 +288,9 @@ class BookResourceTest {
     }
 
     @Test
-    void shouldHaveDefaultValueOnOffsetAndLimitWhenSearchBookWithoutQueryParams(){
+    void shouldHaveDefaultValueOnOffsetAndLimitWhenSearchBookWithoutQueryParams() {
         when(bookService.searchByTitle(eq("Clean Code"), any(), any()))
-                .thenReturn(new PagedResponse(1, 0, 20, List.of(new BookResponse("Clean Code", "Robert Martin", 2008))));
+                .thenReturn(Uni.createFrom().item(new PagedResponse(1, 0, 20, List.of(new BookResponse("Clean Code", "Robert Martin", 2008)))));
         given()
                 .queryParam("title", "Clean Code")
                 .when().get("/books/search")
@@ -304,7 +305,7 @@ class BookResourceTest {
 
     @Test
     @TestSecurity(user = "admin", roles = "ADMIN")
-    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
+    @JwtSecurity(claims = {@Claim(key = "email", value = "admin@library.com")})
     void shouldReturn204WhenBookDeleted() {
         when(bookService.deleteById(1L)).thenReturn(true);
         given()
@@ -317,7 +318,7 @@ class BookResourceTest {
 
     @Test
     @TestSecurity(user = "admin", roles = "ADMIN")
-    @JwtSecurity(claims = { @Claim(key = "email", value = "admin@library.com") })
+    @JwtSecurity(claims = {@Claim(key = "email", value = "admin@library.com")})
     void shouldReturn404WhenBookDeletedWithWrongId() {
         when(bookService.deleteById(3L)).thenReturn(false);
         given()
@@ -330,7 +331,7 @@ class BookResourceTest {
 
     @Test
     @TestSecurity(user = "user", roles = "USER")
-    @JwtSecurity(claims = { @Claim(key = "email", value = "user@library.com") })
+    @JwtSecurity(claims = {@Claim(key = "email", value = "user@library.com")})
     void shouldReturn403WhenBookDeletedWithoutProperAuthorization() {
         given()
                 .pathParam("id", 1L)

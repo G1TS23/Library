@@ -1,5 +1,6 @@
 package org.library.service;
 
+import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,7 +73,7 @@ class BookServiceTest {
     }
 
     @Test
-    void shouldReturnTrueWhenDeleteABookWithExistingId(){
+    void shouldReturnTrueWhenDeleteABookWithExistingId() {
         when(mockRepo.deleteById(1L)).thenReturn(true);
         boolean result = service.deleteById(1L);
         assertTrue(result);
@@ -80,7 +81,7 @@ class BookServiceTest {
     }
 
     @Test
-    void shouldReturnFalseWhenDeleteABookWithNonExistingId(){
+    void shouldReturnFalseWhenDeleteABookWithNonExistingId() {
         when(mockRepo.deleteById(3L)).thenReturn(false);
         boolean result = service.deleteById(3L);
         assertFalse(result);
@@ -88,11 +89,11 @@ class BookServiceTest {
     }
 
     @Test
-    void shouldReturnBooksFromOpenLibrary(){
+    void shouldReturnBooksFromOpenLibrary() {
         when(mockOpenLibraryService
                 .searchByTitle("Clean Code", 0, 20))
-                .thenReturn(new PagedResponse(1, 0, 20, List.of(new BookResponse("Clean Code", "Robert Martin", 2008))));
-        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+                .thenReturn(Uni.createFrom().item(new PagedResponse(1, 0, 20, List.of(new BookResponse("Clean Code", "Robert Martin", 2008)))));
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20).await().indefinitely();
         assertEquals(1, result.total);
         assertEquals(0, result.offset);
         assertEquals(20, result.limit);
@@ -103,11 +104,11 @@ class BookServiceTest {
     }
 
     @Test
-    void shouldReturnEmptyListFromOpenLibrary(){
+    void shouldReturnEmptyListFromOpenLibrary() {
         when(mockOpenLibraryService
                 .searchByTitle("Clean Code", 0, 20))
-                .thenReturn(new PagedResponse(0, 0, 20, List.of()));
-        PagedResponse result = service.searchByTitle("Clean Code", 0, 20);
+                .thenReturn(Uni.createFrom().item(new PagedResponse(0, 0, 20, List.of())));
+        PagedResponse result = service.searchByTitle("Clean Code", 0, 20).await().indefinitely();
         assertEquals(0, result.total);
         assertEquals(0, result.offset);
         assertEquals(20, result.limit);

@@ -1,5 +1,6 @@
 package org.library.service;
 
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -32,16 +33,17 @@ public class OpenLibraryService {
                         doc.title,
                         getAuthor(doc),
                         doc.firstPublishYear))
-                    .toList();
+                .toList();
         return pagedResponse;
     }
 
-    public PagedResponse searchByTitle(String title, Integer offset, Integer limit) {
-        OpenLibraryResponse response = client.searchByTitle(title, FIELDS, offset, limit).await().indefinitely();
-        PagedResponse pagedResponse = from(response);
-        pagedResponse.limit = limit;
-        pagedResponse.offset = offset;
-        return pagedResponse;
+    public Uni<PagedResponse> searchByTitle(String title, Integer offset, Integer limit) {
+        return client.searchByTitle(title, FIELDS, offset, limit).onItem().transform(response -> {
+            PagedResponse pagedResponse = from(response);
+            pagedResponse.limit = limit;
+            pagedResponse.offset = offset;
+            return pagedResponse;
+        });
     }
 
     private static String getAuthor(OpenLibraryDoc doc) {
