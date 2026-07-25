@@ -15,4 +15,4 @@ jobs:
         with:
           java-version: 21
           distribution: temurin
-            - run: ./mvnw test
+      - run: ./mvnw test
