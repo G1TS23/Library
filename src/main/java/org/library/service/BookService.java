@@ -5,7 +5,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.library.dto.BookRequest;
 import org.library.dto.BookResponse;
 import org.library.dto.PagedResponse;
@@ -23,19 +22,16 @@ public class BookService {
     private final BookRepository bookRepository;
     private final OpenLibraryService openLibraryService;
 
-    private final int maxLoans;
-
     /**
      * @param bookRepository repository for book data access
+     * @param openLibraryService service for interacting with the Open Library API
      */
     @Inject
     public BookService(
             BookRepository bookRepository,
-            OpenLibraryService openLibraryService,
-            @ConfigProperty(name = "library.max-loans", defaultValue = "5") int maxLoans) {
+            OpenLibraryService openLibraryService) {
         this.bookRepository = bookRepository;
         this.openLibraryService = openLibraryService;
-        this.maxLoans = maxLoans;
     }
 
     /**

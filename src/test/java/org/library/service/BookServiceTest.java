@@ -27,7 +27,7 @@ class BookServiceTest {
     void setUp() {
         mockRepo = mock(BookRepository.class);
         mockOpenLibraryService = mock(OpenLibraryService.class);
-        service = new BookService(mockRepo, mockOpenLibraryService, 5);
+        service = new BookService(mockRepo, mockOpenLibraryService);
     }
 
     @Test
