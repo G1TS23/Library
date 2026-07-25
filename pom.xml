@@ -16,6 +16,9 @@
         <quarkus.platform.version>3.35.3</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
+        <sonar.organization>g1ts23</sonar.organization>
+        <sonar.projectKey>G1TS23_Library</sonar.projectKey>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <dependencyManagement>
