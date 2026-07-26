@@ -46,6 +46,23 @@ Quelques décisions relèvent de l'exploration, pas de ce qu'exigerait une vraie
 
 L'application sera disponible sur `http://localhost:8080`, avec la Dev UI Quarkus sur `/q/dev` et Swagger UI sur `/q/swagger-ui`. Une base PostgreSQL est démarrée automatiquement via **Dev Services** (Docker requis).
 
+## 🐳 Build natif & conteneurisation
+
+Compilation en binaire natif via **GraalVM** — l'une des vitrines de Quarkus (démarrage en quelques dizaines de millisecondes, faible empreinte mémoire) :
+
+```bash
+# Compile dans un conteneur Linux (pas besoin de GraalVM installé localement)
+./mvnw package -Pnative -Dquarkus.native.container-build=true
+```
+
+Le binaire produit est un exécutable **Linux**, destiné à tourner en conteneur — pas sur la machine de dev. Un `docker-compose.yml` orchestre l'image native (via le `Dockerfile.native` généré par Quarkus) et une base PostgreSQL :
+
+```bash
+docker compose up --build
+```
+
+> 💡 **Leçon au passage.** La datasource n'est configurée qu'en profil `%dev` ; le lancement en natif (profil `prod`) oblige à fournir explicitement l'URL, les identifiants et la génération de schéma (via variables d'environnement dans le compose). Un bon rappel que le confort des *Dev Services* masque des besoins de configuration bien réels en production. À noter aussi : le binaire natif ne se recharge pas à chaud — toute modification impose de relancer l'étape de compilation.
+
 ## ✅ Tests
 
 ```bash
