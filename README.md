@@ -1,3 +1,5 @@
+![CI](https://github.com/G1TS23/Library/actions/workflows/ci.yml/badge.svg)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=G1TS23_Library&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=G1TS23_Library)
 # 📚 Library
 
 Application de gestion de bibliothèque développée avec **Quarkus**, dans le cadre de ma montée en compétence sur ce framework.
@@ -68,3 +70,15 @@ docker compose up --build
 ```bash
 ./mvnw test
 ```
+## 🔄 Intégration continue
+
+Pipeline GitHub Actions à chaque push et pull request, en deux jobs **parallèles** :
+
+| Job | Rôle | Sortie |
+|---|---|---|
+| **Build & Analyze** | Compile, lance les 43 tests (PostgreSQL éphémère via Testcontainers), mesure la couverture JaCoCo, envoie l'analyse à SonarCloud | Quality Gate |
+| **Mutation Test** | Lance PIT sur la couche service | Score de mutation + rapport HTML (artefact) |
+
+Les deux signaux sont **indépendants** : une régression Sonar et une baisse du score de mutation échouent séparément, chacun pour sa raison.
+
+> 💡 Le **score de mutation** (PIT tue 100 % des mutants de la couche service) est un signal plus fort que la couverture de lignes : il prouve que les tests *détectent* les régressions, pas seulement qu'ils *exécutent* le code. C'est aussi pourquoi le pourcentage de couverture affiché sous-estime la robustesse réelle — l'extension Quarkus-JaCoCo ne capte pas les tests unitaires purs, que PIT valide pourtant à 100 %.
