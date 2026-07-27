@@ -20,9 +20,10 @@
         <sonar.projectKey>G1TS23_Library</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.coverage.jacoco.xmlReportPaths>target/jacoco-report/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.coverage.exclusions>**/dto/openlibrary/**</sonar.coverage.exclusions>
         <pitest.version>1.25.7</pitest.version>
         <pitest.junit5.version>1.2.1</pitest.junit5.version>
+        <jacoco.version>0.8.13</jacoco.version>
+        <quarkus.jacoco.reuse-data-file>true</quarkus.jacoco.reuse-data-file>
     </properties>
 
     <dependencyManagement>
@@ -159,6 +160,23 @@
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>5.1.0.4751</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <destFile>${project.build.directory}/jacoco-quarkus.exec</destFile>
+                            <append>true</append>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
