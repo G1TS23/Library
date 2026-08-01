@@ -20,7 +20,10 @@ jobs:
           java-version: '21'
           distribution: temurin
           cache: maven
-      - run: ./mvnw -B verify sonar:sonar
+      - run: ./mvnw -B verify
+      - name: SonarCloud analysis
+        if: github.actor != 'dependabot[bot]'
+        run: ./mvnw -B sonar:sonar
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Submit dependency graph
