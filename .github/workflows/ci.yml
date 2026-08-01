@@ -9,6 +9,8 @@ jobs:
   build:
     name: Build & Analyze
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -21,6 +23,9 @@ jobs:
       - run: ./mvnw -B verify sonar:sonar
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Submit dependency graph
+        uses: advanced-security/maven-dependency-submission-action@v5
+        if: github.ref == 'refs/heads/main'
 
   mutation-test:
     name: Mutation Test
