@@ -22,7 +22,7 @@
         <sonar.coverage.jacoco.xmlReportPaths>target/jacoco-report/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <pitest.version>1.25.7</pitest.version>
         <pitest.junit5.version>1.2.1</pitest.junit5.version>
-        <jacoco.version>0.8.13</jacoco.version>
+        <jacoco.version>0.8.15</jacoco.version>
         <quarkus.jacoco.reuse-data-file>true</quarkus.jacoco.reuse-data-file>
     </properties>
 
