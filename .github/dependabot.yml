@@ -4,6 +4,11 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    # Sept jours de carence : laisse passer les correctifs qui suivent souvent une
+    # sortie, plutôt que d'adopter une version publiée le jour même. Sans ce bloc,
+    # Dependabot applique quand même un défaut de 3 jours.
+    cooldown:
+      default-days: 7
     groups:
       quarkus:
         patterns: ["io.quarkus*"]
@@ -14,6 +19,8 @@ updates:
     schedule:
       interval: monthly
 
+  # Pas de cooldown ici : les registres Docker n'exposent pas de date de
+  # publication, Dependabot ne peut donc pas calculer l'âge d'un tag.
   - package-ecosystem: docker
     directory: "/src/main/docker"
     schedule:

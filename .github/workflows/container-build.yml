@@ -1,0 +1,68 @@
+name: Container Build
+
+# La CI principale ne construit aucune image : elle valide le code, pas le conteneur.
+# Ce workflow comble ce trou, mais seulement quand les fichiers concernés bougent —
+# une compilation native coûte plusieurs minutes, inutile de la payer à chaque PR.
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/main/docker/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/container-build.yml'
+  pull_request:
+    paths:
+      - 'src/main/docker/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/container-build.yml'
+  workflow_dispatch:
+
+jobs:
+  native-image:
+    name: Native Image & Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6.0.0
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      # container-build=true n'est pas un détail : il compile dans une image
+      # builder basée sur UBI, donc contre la même glibc que l'image d'exécution.
+      # Une compilation sur le runner Ubuntu produirait un binaire lié à une glibc
+      # plus récente, qui échouerait au démarrage dans le conteneur UBI 9.
+      - name: Compiler le binaire natif
+        run: ./mvnw -B package -Pnative -Dquarkus.native.container-build=true -DskipTests
+
+      # Les tests tournent déjà dans le job « Build & Analyze » ; ce qu'on vérifie
+      # ici, c'est le conteneur et la configuration du profil prod.
+      - name: Construire et démarrer la stack
+        run: docker compose up -d --build
+
+      - name: Vérifier que l'application répond
+        run: |
+          for i in $(seq 1 40); do
+            if curl -sf -o /dev/null http://localhost:8080/q/openapi; then
+              echo "Application démarrée (tentative ${i})."
+              # /books traverse Hibernate et Postgres : c'est ce qui prouve que la
+              # configuration par variables d'environnement du profil prod est bonne.
+              curl -sf -o /dev/null -w 'GET /books -> HTTP %{http_code}\n' http://localhost:8080/books
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::L'application n'a pas répondu dans le délai imparti."
+          exit 1
+
+      - name: Journaux des conteneurs
+        if: failure()
+        run: docker compose logs
+
+      - name: Arrêter la stack
+        if: always()
+        run: docker compose down -v
