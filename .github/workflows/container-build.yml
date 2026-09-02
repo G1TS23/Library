@@ -46,18 +46,54 @@ jobs:
 
       - name: Vérifier que l'application répond
         run: |
+          # Attente du démarrage : /q/openapi est servi dès que le serveur écoute.
+          ready=0
           for i in $(seq 1 40); do
             if curl -sf -o /dev/null http://localhost:8080/q/openapi; then
-              echo "Application démarrée (tentative ${i})."
-              # /books traverse Hibernate et Postgres : c'est ce qui prouve que la
-              # configuration par variables d'environnement du profil prod est bonne.
-              curl -sf -o /dev/null -w 'GET /books -> HTTP %{http_code}\n' http://localhost:8080/books
-              exit 0
+              ready=$i
+              break
             fi
             sleep 3
           done
-          echo "::error::L'application n'a pas répondu dans le délai imparti."
-          exit 1
+
+          if [ "$ready" -eq 0 ]; then
+            echo "::error::L'application n'a pas répondu dans le délai imparti."
+            exit 1
+          fi
+
+          # Pas de -f ici : on veut lire le code, pas interrompre la commande.
+          openapi=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/q/openapi)
+          # /books traverse Hibernate et Postgres : c'est ce qui prouve que la
+          # configuration par variables d'environnement du profil prod est bonne.
+          books=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/books)
+
+          # La version d'UBI est ce que font varier les PR Dependabot « docker » :
+          # l'inscrire au résumé dit sur quelle base l'image a réellement été testée.
+          image_id=$(docker compose images -q app)
+          base=$(docker inspect "$image_id" \
+                   --format '{{index .Config.Labels "name"}}:{{index .Config.Labels "version"}}' \
+                 2>/dev/null || echo "inconnue")
+          startup=$(docker compose logs app 2>/dev/null \
+                    | grep -o 'started in [0-9.]*s' | tail -1 | sed 's/started in //')
+
+          {
+            echo "## 🐳 Image conteneur"
+            echo
+            echo "| Vérification | Résultat |"
+            echo "|---|---|"
+            echo "| Image de base | \`$base\` |"
+            if [ -n "$startup" ]; then
+              echo "| Démarrage natif | $startup |"
+            fi
+            echo "| Prêt après | ${ready} tentative(s) |"
+            echo "| \`GET /q/openapi\` | HTTP $openapi |"
+            echo "| \`GET /books\` (Hibernate → Postgres) | HTTP $books |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$openapi" != "200" ] || [ "$books" != "200" ]; then
+            echo "::error::Réponse inattendue (openapi=$openapi, books=$books)."
+            exit 1
+          fi
 
       - name: Journaux des conteneurs
         if: failure()
