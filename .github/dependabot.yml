@@ -10,8 +10,16 @@ updates:
     cooldown:
       default-days: 7
     groups:
+      # L'ordre compte : une dépendance rejoint le PREMIER groupe qu'elle matche.
+      # Quarkus est déclaré en tête pour rester isolé — le BOM déplace tout l'arbre
+      # transitif, si la CI casse dessus on veut qu'il soit seul en cause.
       quarkus:
         patterns: ["io.quarkus*"]
+      # Tout le reste en une PR. Les majeures en sont exclues (absentes de
+      # update-types) et continuent d'arriver seules, pour être lues seules.
+      maven-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions
